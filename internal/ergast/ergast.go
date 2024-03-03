@@ -10,13 +10,21 @@ import (
 	"github.com/lucas-ingemar/f1sched/internal/shared"
 )
 
+const (
+	SCHEDULE_URL = "http://ergast.com/api/f1/2024.json"
+)
+
 func GetRaceData() (races []shared.Race, err error) {
 	data, err := downloadRaceData()
 	if err != nil {
 		return nil, err
 	}
 
-	for _, r := range data.RaceTable.Races {
+	for idx, r := range data.RaceTable.Races {
+		_ = idx
+		// if idx > 6 {
+		// 	continue
+		// }
 		nr, err := generateRace(r)
 		if err != nil {
 			return nil, err
@@ -28,24 +36,12 @@ func GetRaceData() (races []shared.Race, err error) {
 }
 
 func generateRace(eRace shared.ErgastRace) (shared.Race, error) {
-	fp1, err := time.Parse("2006-01-02T15:04:05Z", fmt.Sprintf("%sT%s", eRace.FirstPractice.Date, eRace.FirstPractice.Time))
+	rtV, err := time.Parse("2006-01-02T15:04:05Z", fmt.Sprintf("%sT%s", eRace.Date, eRace.Time))
+	rt := &rtV
 	if err != nil {
-		return shared.Race{}, err
-	}
-
-	fp2, err := time.Parse("2006-01-02T15:04:05Z", fmt.Sprintf("%sT%s", eRace.SecondPractice.Date, eRace.SecondPractice.Time))
-	if err != nil {
-		return shared.Race{}, err
-	}
-
-	rt, err := time.Parse("2006-01-02T15:04:05Z", fmt.Sprintf("%sT%s", eRace.Date, eRace.Time))
-	if err != nil {
-		return shared.Race{}, err
-	}
-
-	qt, err := time.Parse("2006-01-02T15:04:05Z", fmt.Sprintf("%sT%s", eRace.Qualifying.Date, eRace.Qualifying.Time))
-	if err != nil {
-		return shared.Race{}, err
+		rtV, _ = time.Parse("2006-01-02", eRace.Date)
+		rtV = rtV.In(time.Local)
+		rt = &rtV
 	}
 
 	r := shared.Race{
@@ -53,33 +49,36 @@ func generateRace(eRace shared.ErgastRace) (shared.Race, error) {
 		RaceName:       eRace.RaceName,
 		Circuit:        eRace.Circuit.CircuitName,
 		Country:        eRace.Circuit.Location.Country,
-		FirstPractice:  fp1,
-		SecondPractice: fp2,
-		Qualifying:     qt,
+		FirstPractice:  parseTime(eRace.FirstPractice.Date, eRace.FirstPractice.Time),
+		SecondPractice: parseTime(eRace.SecondPractice.Date, eRace.SecondPractice.Time),
+		Qualifying:     parseTime(eRace.Qualifying.Date, eRace.Qualifying.Time),
 		Race:           rt,
 	}
 
 	if eRace.Sprint != nil {
-		st, err := time.Parse("2006-01-02T15:04:05Z", fmt.Sprintf("%sT%s", eRace.Sprint.Date, eRace.Sprint.Time))
-		if err != nil {
-			return shared.Race{}, err
-		}
 		r.Type = shared.SprintRace
-		r.Sprint = st
+		r.Sprint = parseTime(eRace.Sprint.Date, eRace.Sprint.Time)
 	} else {
-		fp3, err := time.Parse("2006-01-02T15:04:05Z", fmt.Sprintf("%sT%s", eRace.ThirdPractice.Date, eRace.ThirdPractice.Time))
-		if err != nil {
-			return shared.Race{}, err
+		if eRace.ThirdPractice != nil {
+			r.ThirdPractice = parseTime(eRace.ThirdPractice.Date, eRace.ThirdPractice.Time)
 		}
 		r.Type = shared.NormalRace
-		r.ThirdPractice = fp3
 	}
 
 	return r, nil
 }
 
+func parseTime(d, t string) *time.Time {
+	tV, err := time.Parse("2006-01-02T15:04:05Z", fmt.Sprintf("%sT%s", d, t))
+	if err != nil {
+		return nil
+	}
+	nt := tV.In(time.Local)
+	return &nt
+}
+
 func downloadRaceData() (shared.MRData, error) {
-	resp, err := http.Get("http://ergast.com/api/f1/current.json")
+	resp, err := http.Get(SCHEDULE_URL)
 	if err != nil {
 		return shared.MRData{}, err
 	}

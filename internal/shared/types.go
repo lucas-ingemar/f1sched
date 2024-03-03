@@ -15,12 +15,12 @@ type Race struct {
 	Circuit        string
 	Country        string
 	Type           RaceType
-	FirstPractice  time.Time
-	SecondPractice time.Time
-	ThirdPractice  time.Time
-	Qualifying     time.Time
-	Sprint         time.Time
-	Race           time.Time
+	FirstPractice  *time.Time
+	SecondPractice *time.Time
+	ThirdPractice  *time.Time
+	Qualifying     *time.Time
+	Sprint         *time.Time
+	Race           *time.Time
 }
 
 type Location struct {
@@ -72,4 +72,16 @@ type MRData struct {
 
 type Ergast struct {
 	MRData MRData `json:"MRData"`
+}
+
+type Color struct {
+	Color1 string
+	Color2 string
+	Color3 string
+}
+
+type Country struct {
+	Name    string
+	BgColor Color
+	FgColor Color
 }
