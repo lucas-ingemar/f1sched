@@ -17,7 +17,7 @@ var (
 type RaceSummaryModel struct {
 	Style lipgloss.Style
 
-	race    shared.Race
+	race    shared.RaceInformation
 	country shared.Country
 
 	frame int
@@ -39,24 +39,24 @@ func (m RaceSummaryModel) View() string {
 		Foreground(lipgloss.Color(m.country.FgColor.Color1)).
 		Align(lipgloss.Center).
 		Width(34).
-		Render(m.race.Country)
+		Render(m.race.Location.Country)
 	s += "\n      "
 	s += lipgloss.NewStyle().
 		Background(lipgloss.Color(m.country.BgColor.Color2)).
 		Foreground(lipgloss.Color(m.country.FgColor.Color2)).
 		Align(lipgloss.Center).
 		Width(34).
-		Render(m.race.Circuit)
+		Render(m.race.Location.Circuit)
 	s += "\n   "
 	s += lipgloss.NewStyle().
 		Background(lipgloss.Color(m.country.BgColor.Color3)).
 		Foreground(lipgloss.Color(m.country.FgColor.Color3)).
 		Align(lipgloss.Center).
 		Width(34).
-		Render(m.race.RaceName)
+		Render(m.race.Name)
 	s += "\n"
 	s += "\n"
-	s += m.race.Race.AddDate(0, 0, -2).In(time.Local).Format(" Jan 02 - ") + m.race.Race.In(time.Local).Format("Jan 02, 2006")
+	s += m.race.StartTime.In(time.Local).Format(" Jan 02 - ") + m.race.EndTime.In(time.Local).Format("Jan 02, 2006")
 	if m.race.Type == shared.SprintRace {
 		s += "         "
 		s += lipgloss.NewStyle().Background(lipgloss.ANSIColor(8)).Render(" Sprint ")
@@ -69,23 +69,25 @@ func (m RaceSummaryModel) View() string {
 	// 	Width(30).
 	// 	Render("Practice 1: 29 Feb, 15:00")
 	// 	 2006-01-02T15:04:05Z
-	s += getDateStyle(m.race.FirstPractice).Render("         Practice 1:      " + formatDateTime(m.race.FirstPractice))
-	s += "\n"
-	s += getDateStyle(m.race.SecondPractice).Render("         Practice 2:      " + formatDateTime(m.race.SecondPractice))
+	s += getDateStyle(m.race.FreePractice1).Render("         Practice 1:      " + formatDateTime(&m.race.FreePractice1.StartTime))
 	s += "\n"
 	if m.race.Type == shared.NormalRace {
-		s += getDateStyle(m.race.ThirdPractice).Render("         Practice 3:      " + formatDateTime(m.race.ThirdPractice))
+		s += getDateStyle(m.race.FreePractice2).Render("         Practice 2:      " + formatDateTime(&m.race.FreePractice2.StartTime))
+		s += "\n"
+		s += getDateStyle(m.race.FreePractice3).Render("         Practice 3:      " + formatDateTime(&m.race.FreePractice3.StartTime))
 		s += "\n"
 		s += "\n"
-		s += getDateStyle(m.race.Qualifying).Render("         Qualifying:      " + formatDateTime(m.race.Qualifying))
+		s += getDateStyle(m.race.Qualifying).Render("         Qualifying:      " + formatDateTime(&m.race.Qualifying.StartTime))
 	} else {
 		s += "\n"
-		s += getDateStyle(m.race.Qualifying).Render("         Qualifying:      " + formatDateTime(m.race.Qualifying))
+		s += getDateStyle(m.race.SprintQualifying).Render("  Sprint Qualifying:      " + formatDateTime(&m.race.SprintQualifying.StartTime))
 		s += "\n"
-		s += getDateStyle(m.race.Sprint).Render("         Sprint:          " + formatDateTime(m.race.Sprint))
+		s += getDateStyle(m.race.Sprint).Render("         Sprint:          " + formatDateTime(&m.race.Sprint.StartTime))
+		s += "\n"
+		s += getDateStyle(m.race.Qualifying).Render("         Qualifying:      " + formatDateTime(&m.race.Qualifying.StartTime))
 	}
 	s += "\n"
-	s += getDateStyle(m.race.Race).Render("         Race:            " + formatDateTime(m.race.Race))
+	s += getDateStyle(m.race.Race).Render("         Race:            " + formatDateTime(&m.race.Race.StartTime))
 	// s += "         Race:            02 Mar, 15:00"
 	// s += "         Race:           Max Verstappen"
 
@@ -93,10 +95,10 @@ func (m RaceSummaryModel) View() string {
 }
 
 // New returns a model with default values.
-func NewRaceSummary(race shared.Race) RaceSummaryModel {
+func NewRaceSummary(race shared.RaceInformation) RaceSummaryModel {
 	m := RaceSummaryModel{
 		race:    race,
-		country: countries.GetCountry(race.Country),
+		country: countries.GetCountry(race.Location.Country),
 	}
 
 	return m
@@ -109,12 +111,12 @@ func formatDateTime(dt *time.Time) string {
 	return dt.In(time.Local).Format("Jan 02, 15:04")
 }
 
-func getDateStyle(t *time.Time) lipgloss.Style {
-	if t == nil {
+func getDateStyle(event *shared.RaceEvent) lipgloss.Style {
+	if event == nil {
 		return normalStyle
 	}
 
-	if t.Add(2 * time.Hour).Before(time.Now()) {
+	if event.EndTime.Before(time.Now()) {
 		return pastStyle
 	}
 	return normalStyle

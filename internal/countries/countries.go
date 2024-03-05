@@ -1,10 +1,14 @@
 package countries
 
-import "github.com/lucas-ingemar/f1sched/internal/shared"
+import (
+	"github.com/lucas-ingemar/f1sched/internal/shared"
+)
 
 var (
 	countryAltNames = map[string]string{
 		"United States": "USA",
+		"Great Britain": "UK",
+		"Abu Dhabi":     "UAE",
 	}
 
 	countries = []shared.Country{

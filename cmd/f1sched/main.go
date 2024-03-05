@@ -3,17 +3,25 @@ package main
 import (
 	"log"
 
-	"github.com/lucas-ingemar/f1sched/internal/ergast"
+	"github.com/lucas-ingemar/f1sched/internal/api"
+	"github.com/lucas-ingemar/f1sched/internal/f1com"
 	"github.com/lucas-ingemar/f1sched/internal/tui"
 )
 
 func main() {
-	races, err := ergast.GetRaceData()
+
+	raceApi := api.NewRaceApi(f1com.F1com{})
+	raceSchedule, err := raceApi.RaceSchedule(2024)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	if err := tui.Run(races); err != nil {
+	// races, err = ergast.GetRaceData()
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	if err := tui.Run(raceSchedule); err != nil {
 		log.Fatal(err)
 	}
 }

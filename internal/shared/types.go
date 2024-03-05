@@ -9,6 +9,41 @@ const (
 	SprintRace RaceType = "sprint"
 )
 
+type RaceSchedule struct {
+	Year            int               `json:"year"`
+	FullInformation bool              `json:"full_information"`
+	Races           []RaceInformation `json:"races"`
+}
+
+type RaceInformation struct {
+	Name             string       `json:"name"`
+	Type             RaceType     `json:"type"`
+	Location         RaceLocation `json:"location"`
+	Round            int          `json:"round"`
+	StartTime        time.Time    `json:"start_time"`
+	EndTime          time.Time    `json:"end_time"`
+	FreePractice1    *RaceEvent   `json:"free_practice_1,omitempty"`
+	FreePractice2    *RaceEvent   `json:"free_practice_2,omitempty"`
+	FreePractice3    *RaceEvent   `json:"free_practice_3,omitempty"`
+	SprintQualifying *RaceEvent   `json:"sprint_qualifying,omitempty"`
+	Sprint           *RaceEvent   `json:"sprint,omitempty"`
+	Qualifying       *RaceEvent   `json:"qualifying,omitempty"`
+	Race             *RaceEvent   `json:"race,omitempty"`
+}
+
+type RaceLocation struct {
+	Country string `json:"country"`
+	City    string `json:"city"`
+	Circuit string `json:"circuit"`
+}
+
+type RaceEvent struct {
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+}
+
+//////////////////////////////////////
+
 type Race struct {
 	Round          string
 	RaceName       string

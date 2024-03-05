@@ -36,9 +36,9 @@ type mainModel struct {
 	totalRows      int
 }
 
-func newModel(races []shared.Race) mainModel {
+func newModel(raceSchedule shared.RaceSchedule) mainModel {
 	m := mainModel{}
-	for _, r := range races {
+	for _, r := range raceSchedule.Races {
 		m.races = append(m.races, NewRaceSummary(r))
 	}
 	return m
@@ -164,7 +164,7 @@ func (m mainModel) View() string {
 			hList = []string{}
 			row += 1
 		}
-		style := getStyle(card.race, idx == m.selectedIndex)
+		style := getStyle(idx == m.selectedIndex)
 
 		renderedCard := style.Render(fmt.Sprintf("%4s", card.View()))
 		if row == maxRows-1 {
@@ -183,19 +183,19 @@ func (m mainModel) View() string {
 	return s
 }
 
-func Run(races []shared.Race) error {
-	p := tea.NewProgram(newModel(races), tea.WithAltScreen())
+func Run(raceSchedule shared.RaceSchedule) error {
+	p := tea.NewProgram(newModel(raceSchedule), tea.WithAltScreen())
 	_, err := p.Run()
 	return err
 }
 
-func getStyle(race shared.Race, focused bool) lipgloss.Style {
+func getStyle(focused bool) lipgloss.Style {
 	modelStyle := lipgloss.NewStyle().
 		Width(cardWidth).
 		Height(cardHeight).
 		Align(lipgloss.Top, lipgloss.Left).
 		BorderForeground(lipgloss.ANSIColor(8)).
-		BorderStyle(lipgloss.NormalBorder())
+		BorderStyle(lipgloss.RoundedBorder())
 
 	if focused {
 		modelStyle = modelStyle.
