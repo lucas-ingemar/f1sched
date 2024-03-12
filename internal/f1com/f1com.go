@@ -8,6 +8,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+const (
+	f1BaseUrl = "https://www.formula1.com"
+)
+
 type F1com struct {
 }
 

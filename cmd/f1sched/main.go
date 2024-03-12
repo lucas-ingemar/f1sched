@@ -16,12 +16,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	driverStandings, err := raceApi.DriverStandings(raceSchedule)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// fmt.Println(driverStandings)
+	// return
+
 	// races, err = ergast.GetRaceData()
 	// if err != nil {
 	// 	panic(err)
 	// }
 
-	if err := tui.Run(raceSchedule); err != nil {
+	if err := tui.Run(raceSchedule, driverStandings); err != nil {
 		log.Fatal(err)
 	}
 }

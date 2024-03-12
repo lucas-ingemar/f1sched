@@ -15,6 +15,17 @@ type RaceSchedule struct {
 	Races           []RaceInformation `json:"races"`
 }
 
+func (rs RaceSchedule) GetLatestFinishedRace() *RaceInformation {
+	for idx, r := range rs.Races {
+		if r.EndTime.After(time.Now()) && idx > 0 {
+			return &rs.Races[idx-1]
+		} else if r.EndTime.After(time.Now()) && idx == 0 {
+			return nil
+		}
+	}
+	return &rs.Races[len(rs.Races)-1]
+}
+
 type RaceInformation struct {
 	Name             string       `json:"name"`
 	Type             RaceType     `json:"type"`
@@ -40,6 +51,21 @@ type RaceLocation struct {
 type RaceEvent struct {
 	StartTime time.Time `json:"start_time"`
 	EndTime   time.Time `json:"end_time"`
+}
+
+type DriverStandings struct {
+	UpdatedAt time.Time        `json:"updated_at"`
+	Entries   []StandingDriver `json:"entries"`
+}
+
+type StandingDriver struct {
+	Position        int    `json:"position"`
+	DriverFirstName string `json:"driver_first_name"`
+	DriverLastName  string `json:"driver_last_name"`
+	DriverShort     string `json:"driver_short"`
+	Nationality     string `json:"nationality"`
+	Team            string `json:"team"`
+	Points          int    `json:"points"`
 }
 
 //////////////////////////////////////
@@ -119,4 +145,5 @@ type Country struct {
 	Name    string
 	BgColor Color
 	FgColor Color
+	Flag    string
 }

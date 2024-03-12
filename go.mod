@@ -31,6 +31,7 @@ require (
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/gocolly/colly/v2 v2.1.0
+	github.com/jayco/go-emoji-flag v0.0.0-20190810054606-01604da018da
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect

@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	f1BaseUrl            = "https://www.formula1.com"
 	f1RaceListUrlPattern = f1BaseUrl + "/en/racing/%d.html"
 )
 

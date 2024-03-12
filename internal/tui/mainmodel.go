@@ -1,123 +1,104 @@
 package tui
 
 import (
-	"fmt"
-	"math"
 	"strings"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lucas-ingemar/f1sched/internal/shared"
+	"github.com/muesli/ansi"
 )
 
-type sessionState uint
+// type sessionState uint
 
 const (
-	defaultTime              = time.Minute
-	timerView   sessionState = iota
-	spinnerView
-	cardWidth  = 40
-	cardHeight = 12
+// defaultTime              = time.Minute
+// timerView   sessionState = iota
+// spinnerView
+// cardWidth  = 40
+// cardHeight = 12
 )
 
 var (
-	helpStyle = lipgloss.NewStyle().Foreground(lipgloss.ANSIColor(8))
+	inactiveTabBorder = tabBorderWithBottom("┴", "─", "┴")
+	activeTabBorder   = tabBorderWithBottom("┘", " ", "└")
+	paddingBorder     = generatePaddingBorder()
+	docStyle          = lipgloss.NewStyle().Padding(0, 0, 0, 0)
+	highlightColor    = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
+	inactiveTabStyle  = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(highlightColor).Padding(0, 1)
+	activeTabStyle    = inactiveTabStyle.Copy().Border(activeTabBorder, true)
+	windowStyle       = lipgloss.NewStyle().BorderForeground(highlightColor).Padding(2, 0, 0, 0).Align(lipgloss.Center).Border(lipgloss.NormalBorder()).UnsetBorderTop()
+	helpStyle         = lipgloss.NewStyle().Foreground(lipgloss.ANSIColor(8))
 )
 
 type mainModel struct {
-	races          []RaceSummaryModel
-	selectedIndex  int
-	row            int
-	col            int
+	Tabs       []string
+	TabContent []tea.Model
+	// ssm            tea.Model
+	activeTab      int
 	terminalWidth  int
 	terminalHeight int
-	cardsPerRow    int
-	totalRows      int
 }
 
-func newModel(raceSchedule shared.RaceSchedule) mainModel {
-	m := mainModel{}
-	for _, r := range raceSchedule.Races {
-		m.races = append(m.races, NewRaceSummary(r))
+func newModel(raceSchedule shared.RaceSchedule, driverStandings shared.DriverStandings) mainModel {
+	// m := mainModel{}
+	// seasonScheduleModel := newSeasonScheduleModel(raceSchedule)
+	tabs := []string{"Season Schedule", "Driver Standing", "Team Standing"}
+	// tabContent := []string{"Lip Gloss Tab", "Mascara Tab", "Foundation Tab"}
+	tabContent := []tea.Model{
+		newSeasonScheduleModel(raceSchedule),
+		newDriverStandingsModel(driverStandings),
+		newDriverStandingsModel(driverStandings),
 	}
+	m := mainModel{Tabs: tabs, TabContent: tabContent}
 	return m
 }
 
 func (m mainModel) Init() tea.Cmd {
 	models := []tea.Cmd{}
-	for _, t := range m.races {
+	// models = append(models, m.ssm.Init())
+	for _, t := range m.TabContent {
 		models = append(models, t.Init())
 	}
 	return tea.Batch(models...)
 }
 
-func (m *mainModel) moveFocus(direction string) error {
-	switch direction {
-	case "left":
-		m.col -= 1
-		if m.col < 0 {
-			m.col = m.cardsPerRow - 1
-		}
-
-	case "right":
-		m.col += 1
-		if m.col > m.cardsPerRow-1 {
-			m.col = 0
-		}
-
-	case "up":
-		m.row -= 1
-		if m.row < 0 {
-			m.row = m.totalRows - 1
-		}
-
-	case "down":
-		m.row += 1
-		if m.row > m.totalRows-1 {
-			m.row = 0
-		}
-	}
-
-	m.selectedIndex = m.row*m.cardsPerRow + m.col
-	if m.selectedIndex >= len(m.races) {
-		m.selectedIndex = len(m.races) - 1
-	}
-
-	return nil
-}
-
 func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// var cmd tea.Cmd
+	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.terminalWidth = msg.Width
 		m.terminalHeight = msg.Height
-		m.cardsPerRow = int(m.terminalWidth / cardWidth)
-		m.totalRows = int(math.Ceil(float64(len(m.races)) / float64(m.cardsPerRow)))
+		msg.Width = msg.Width - windowStyle.GetHorizontalFrameSize() - 6
+		msg.Height = msg.Height - windowStyle.GetVerticalFrameSize() - 1
+		for idx, tm := range m.TabContent {
+			m.TabContent[idx], cmd = tm.Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "up", "down", "left", "right":
-			err := m.moveFocus(msg.String())
-			_ = err
 		case "ctrl+c", "q":
 			return m, tea.Quit
-			// case "tab":
-			// 	if m.state == timerView {
-			// 		m.state = spinnerView
-			// 	} else {
-			// 		m.state = timerView
-			// 	}
-			// case "n":
-			// 	if m.state == timerView {
-			// 		m.timer = timer.New(defaultTime)
-			// 		cmds = append(cmds, m.timer.Init())
-			// 	} else {
-			// 		// m.Next()
-			// 		// m.resetSpinner()
-			// 		cmds = append(cmds, m.spinner.Tick)
-			// 	}
+		case "tab":
+			if m.activeTab == len(m.Tabs)-1 {
+				m.activeTab = 0
+			} else {
+				m.activeTab = min(m.activeTab+1, len(m.Tabs)-1)
+			}
+			return m, nil
+		case "shift+tab":
+			m.activeTab = max(m.activeTab-1, 0)
+			return m, nil
+			// if m.state == timerView {
+			// 	m.state = spinnerView
+			// } else {
+			// 	m.state = timerView
+			// }
+		default:
+			m.TabContent[m.activeTab], cmd = m.TabContent[m.activeTab].Update(msg)
+			// m.ssm, cmd = m.ssm.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 		// switch m.state {
 		// // update whichever model is focused
@@ -135,71 +116,96 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// 	m.timer, cmd = m.timer.Update(msg)
 		// 	cmds = append(cmds, cmd)
 	}
+	// m.ssm, cmd = m.ssm.Update(msg)
+	// cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
 
 func (m mainModel) View() string {
-	var s string
+	doc := strings.Builder{}
 
-	if m.cardsPerRow == 0 {
-		return ""
+	var renderedTabs []string
+
+	totalWidth := 0
+	for i, t := range m.Tabs {
+		var style lipgloss.Style
+		isFirst, isLast, isActive := i == 0, i == len(m.Tabs)-1, i == m.activeTab
+		_ = isLast
+		if isActive {
+			style = activeTabStyle.Copy()
+		} else {
+			style = inactiveTabStyle.Copy()
+		}
+		border, _, _, _, _ := style.GetBorder()
+		if isFirst && isActive {
+			border.BottomLeft = "│"
+		} else if isFirst && !isActive {
+			border.BottomLeft = "├"
+		}
+		style = style.Border(border)
+		renderedTab := style.Render(t)
+
+		totalWidth += ansi.PrintableRuneWidth(strings.Split(renderedTab, "\n")[0])
+
+		renderedTabs = append(renderedTabs, renderedTab)
 	}
 
-	hList := []string{}
-	vList := []string{}
-
-	startIdx := m.row * m.cardsPerRow
-	maxRows := int(math.Ceil(float64(m.terminalHeight) / float64(cardHeight+2)))
-	endIdx := startIdx + maxRows*m.cardsPerRow
-
-	trimVal := m.terminalHeight%(cardHeight+2) - 2
-
-	row := 0
-	for idx, card := range m.races {
-		if idx < startIdx || idx >= endIdx {
-			continue
-		}
-		if idx != startIdx && idx%m.cardsPerRow == 0 {
-			vList = append(vList, lipgloss.JoinHorizontal(lipgloss.Top, hList...))
-			hList = []string{}
-			row += 1
-		}
-		style := getStyle(idx == m.selectedIndex)
-
-		renderedCard := style.Render(fmt.Sprintf("%4s", card.View()))
-		if row == maxRows-1 {
-			renderedCard = strings.Join(strings.Split(renderedCard, "\n")[:trimVal], "\n")
-		}
-		hList = append(hList, renderedCard)
-
+	paddingWidth := m.terminalWidth - totalWidth - 4
+	if paddingWidth > 0 {
+		style := inactiveTabStyle.Copy().Border(paddingBorder, true, true, true, true)
+		paddingTab := style.Render(strings.Repeat(" ", paddingWidth-11) + "2024 Season")
+		renderedTabs = append(renderedTabs, paddingTab)
 	}
 
-	if len(hList) > 0 {
-		vList = append(vList, lipgloss.JoinHorizontal(lipgloss.Top, hList...))
-	}
+	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
+	doc.WriteString(row)
+	// if m.Tabs[m.activeTab] == "Season Schedule" {
+	doc.WriteString(
+		windowStyle.Width((m.terminalWidth - windowStyle.GetHorizontalFrameSize())).
+			Height(m.terminalHeight - windowStyle.GetVerticalFrameSize() - 1).
+			Render(m.TabContent[m.activeTab].View()))
+	// } else {
+	// 	doc.WriteString(
+	// 		windowStyle.Width((m.terminalWidth - windowStyle.GetHorizontalFrameSize())).
+	// 			Height(m.terminalHeight - windowStyle.GetVerticalFrameSize() - 1).
+	// 			Render(m.TabContent[m.activeTab]))
+	// }
 
-	s += lipgloss.JoinVertical(lipgloss.Top, vList...)
-	s += helpStyle.Render("\ntab: focus next • n: new %s • q: exit\n")
-	return s
+	doc.WriteString(helpStyle.Render("\ntab: focus next • n: new %s • q: exit"))
+	return docStyle.Render(doc.String())
+
+	// var s string
+
+	// vList := []string{}
+
+	// s += lipgloss.JoinVertical(lipgloss.Top, vList...)
+	// s += helpStyle.Render("\ntab: focus next • n: new %s • q: exit\n")
+	// return s
 }
 
-func Run(raceSchedule shared.RaceSchedule) error {
-	p := tea.NewProgram(newModel(raceSchedule), tea.WithAltScreen())
+func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
+	border := lipgloss.RoundedBorder()
+	border.BottomLeft = left
+	border.Bottom = middle
+	border.BottomRight = right
+	return border
+}
+
+func generatePaddingBorder() lipgloss.Border {
+	// border, _, _, _, _ := style.GetBorder()
+	border := lipgloss.NormalBorder()
+	border.Top = ""
+	border.Left = ""
+	border.Right = ""
+	border.TopLeft = ""
+	border.TopRight = ""
+	border.BottomLeft = border.Bottom
+	border.BottomRight = "┐"
+	return border
+}
+
+func Run(raceSchedule shared.RaceSchedule, driverStandings shared.DriverStandings) error {
+	p := tea.NewProgram(newModel(raceSchedule, driverStandings), tea.WithAltScreen())
 	_, err := p.Run()
 	return err
-}
-
-func getStyle(focused bool) lipgloss.Style {
-	modelStyle := lipgloss.NewStyle().
-		Width(cardWidth).
-		Height(cardHeight).
-		Align(lipgloss.Top, lipgloss.Left).
-		BorderForeground(lipgloss.ANSIColor(8)).
-		BorderStyle(lipgloss.RoundedBorder())
-
-	if focused {
-		modelStyle = modelStyle.
-			BorderForeground(lipgloss.ANSIColor(5))
-	}
-	return modelStyle
 }

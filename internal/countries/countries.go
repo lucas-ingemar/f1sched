@@ -1,6 +1,7 @@
 package countries
 
 import (
+	emoji "github.com/jayco/go-emoji-flag"
 	"github.com/lucas-ingemar/f1sched/internal/shared"
 )
 
@@ -9,6 +10,20 @@ var (
 		"United States": "USA",
 		"Great Britain": "UK",
 		"Abu Dhabi":     "UAE",
+		"NED":           "Netherlands",
+		"MEX":           "Mexico",
+		"ESP":           "Spain",
+		"MON":           "Monaco",
+		"GBR":           "UK",
+		"AUS":           "Australia",
+		"CAN":           "Canada",
+		"CHN":           "China",
+		"DEN":           "Denmark",
+		"JPN":           "Japan",
+		"THA":           "Thailand",
+		"GER":           "Germany",
+		"FRA":           "France",
+		"FIN":           "Finland",
 	}
 
 	countries = []shared.Country{
@@ -24,6 +39,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("BHR"),
 		},
 		{
 			Name: "Saudi Arabia",
@@ -50,6 +66,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("AUS"),
 		},
 		{
 			Name: "Azerbaijan",
@@ -76,6 +93,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("USA"),
 		},
 		{
 			Name: "Monaco",
@@ -89,6 +107,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("MCO"),
 		},
 		{
 			Name: "Spain",
@@ -102,6 +121,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("ESP"),
 		},
 		{
 			Name: "Canada",
@@ -115,6 +135,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("CAN"),
 		},
 		{
 			Name: "Austria",
@@ -141,6 +162,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("GBR"),
 		},
 		{
 			Name: "Hungary",
@@ -180,6 +202,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("NLD"),
 		},
 		{
 			Name: "Italy",
@@ -210,15 +233,16 @@ var (
 		{
 			Name: "Japan",
 			BgColor: shared.Color{
-				Color1: "#BC002D",
-				Color2: "#FFFFFF",
-				Color3: "#BC002D",
-			},
-			FgColor: shared.Color{
 				Color1: "#FFFFFF",
-				Color2: "#000000",
+				Color2: "#BC002D",
 				Color3: "#FFFFFF",
 			},
+			FgColor: shared.Color{
+				Color1: "#000000",
+				Color2: "#FFFFFF",
+				Color3: "#000000",
+			},
+			Flag: emoji.GetFlag("JPN"),
 		},
 		{
 			Name: "Qatar",
@@ -245,6 +269,7 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("MEX"),
 		},
 		{
 			Name: "Brazil",
@@ -271,6 +296,7 @@ var (
 				Color2: "#FFFFFF",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("ARE"),
 		},
 		{
 			Name: "China",
@@ -284,6 +310,77 @@ var (
 				Color2: "#000000",
 				Color3: "#FFFFFF",
 			},
+			Flag: emoji.GetFlag("CHN"),
+		},
+		{
+			Name: "Denmark",
+			BgColor: shared.Color{
+				Color1: "#C8102E",
+				Color2: "#FFFFFF",
+				Color3: "#C8102E",
+			},
+			FgColor: shared.Color{
+				Color1: "#FFFFFF",
+				Color2: "#000000",
+				Color3: "#FFFFFF",
+			},
+			Flag: emoji.GetFlag("DNK"),
+		},
+		{
+			Name: "Thailand",
+			BgColor: shared.Color{
+				Color1: "#EF3340",
+				Color2: "#FFFFFF",
+				Color3: "#00247D",
+			},
+			FgColor: shared.Color{
+				Color1: "#FFFFFF",
+				Color2: "#000000",
+				Color3: "#FFFFFF",
+			},
+			Flag: emoji.GetFlag("THA"),
+		},
+		{
+			Name: "Germany",
+			BgColor: shared.Color{
+				Color1: "#000000",
+				Color2: "#DD0000",
+				Color3: "#FFCC00",
+			},
+			FgColor: shared.Color{
+				Color1: "#FFFFFF",
+				Color2: "#FFFFFF",
+				Color3: "#000000",
+			},
+			Flag: emoji.GetFlag("DEU"),
+		},
+		{
+			Name: "France",
+			BgColor: shared.Color{
+				Color1: "#002654",
+				Color2: "#FFFFFF",
+				Color3: "#ED2939",
+			},
+			FgColor: shared.Color{
+				Color1: "#FFFFFF",
+				Color2: "#000000",
+				Color3: "#FFFFFF",
+			},
+			Flag: emoji.GetFlag("FRA"),
+		},
+		{
+			Name: "Finland",
+			BgColor: shared.Color{
+				Color1: "#FFFFFF",
+				Color2: "#002F6C",
+				Color3: "#FFFFFF",
+			},
+			FgColor: shared.Color{
+				Color1: "#000000",
+				Color2: "#FFFFFF",
+				Color3: "#000000",
+			},
+			Flag: emoji.GetFlag("FIN"),
 		},
 	}
 )
